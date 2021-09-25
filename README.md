@@ -7,10 +7,9 @@ make
 **启用客户端**:
 ```
 ./tclient [ipaddress] [port]
-
 ./tclient 127.0.0.1 9000
 ```
-**启用客户端**:
+**启用服务端**:
 ```
 ./tserver [ipaddress] [port]
 ./tserver 127.0.0.1 9000
