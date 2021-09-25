@@ -4,9 +4,13 @@
 #include <string.h>
 #include <string>
 #include <iostream>
+#include <sys/epoll.h>
 #include "message.pb.h"
 
 using namespace std;
+
+#define MAX_BUF_LEN 1024
+
 extern int regMatch(const char *,int,const char *,int);
 
 int main(int argc ,char* argv[])
@@ -55,13 +59,12 @@ int main(int argc ,char* argv[])
 		else
 		{
 			request.ParseFromArray(buf,sizeof(buf)-1);
-			cout<<request.regstr().c_str()<<endl;
-			cout<<request.targetstr().c_str()<<endl;
+			printf("client:[%s : %d]:%s\n",inet_ntoa(client.sin_addr),ntohs(client.sin_port),buf);
+			cout<<"[server received]: regular expression:"<<request.regstr()<<endl;
+			cout<<"[server received]: match string:"<<request.targetstr()<<endl;
 			int match = regMatch(request.regstr().c_str(),request.regstr().size(),\
 				request.targetstr().c_str(),request.targetstr().size());
 			reply.set_result(match);
-			//buf[s] = 0;	
-			//printf("[%s : %d]:%s\n",inet_ntoa(client.sin_addr),ntohs(client.sin_port),buf);
 			reply.SerializeToArray(buf,1024);
 			sendto(sock,buf,strlen(buf),0,(struct sockaddr*)&client,strlen(buf));
 			if(strcmp(buf,"quit") == 0)

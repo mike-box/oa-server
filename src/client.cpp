@@ -7,17 +7,16 @@
 
 using namespace std;
 
+#define MAX_BUF_LEN 1024
 
 int main(int argc ,char* argv[])
 {
-	if(argc < 3)
-	{
+	if(argc < 3){
 		printf("./client [addr:][port:]\n");
 		return 4;
 	}
 	int sock = socket(AF_INET,SOCK_DGRAM,0);
-	if(sock < 0)
-	{
+	if(sock < 0){
 		perror("socket");
 		return 1;
 	}
@@ -27,47 +26,36 @@ int main(int argc ,char* argv[])
 	server.sin_port = htons(atoi(argv[2]));
 	server.sin_addr.s_addr = inet_addr(argv[1]);
 	
-	char buf[1024];
+	char buf[MAX_BUF_LEN];
 	struct sockaddr_in peer;
-	socklen_t len = sizeof(peer);
+	socklen_t slen = sizeof(peer);
 	while(1){
-		printf("#please enter#  ");
-		fflush(stdout);
-		
-		ssize_t s = read(0,buf,sizeof(buf)-1);
-		if(s < 0)
-		{
-			perror("read");
-			return 2;
-		}
-		buf[s-1] = 0;
 		requestMsg req;
 		replyMsg reply;
-		string tt;
-		req.set_regstr("[0-9]");
-		req.set_targetstr("000001121299mmsandasdansdm");
-		req.SerializeToString(&tt);
-		cout<<"[regular expression]:"<<req.regstr()<<endl;
-		cout<<"[matched expression]:"<<req.targetstr()<<endl;
-		memset(buf,0,sizeof(buf));
-		memcpy(buf,tt.c_str(),tt.size());
-		sendto(sock,buf,sizeof(buf)-1,0,(struct sockaddr*)&server,sizeof(buf));
-		s = recvfrom(sock,buf,sizeof(buf)-1,0,(struct sockaddr*)&peer,&len);
-		if(s<0)
-		{
+		string str;
+		
+		cout<<"#please enter regular expression#:";
+		cin>>str;
+		req.set_regstr(str);
+		cout<<"#please enter matched string#:";
+		cin>>str;
+		req.set_targetstr(str);
+		
+		//fflush(stdout);
+		req.SerializeToArray(buf,MAX_BUF_LEN);
+		cout<<"[client send] regular expression: "<<req.regstr()<<endl;
+		cout<<"[client send] matched string: "<<req.targetstr()<<endl;
+		sendto(sock,buf,sizeof(buf)-1,0,(struct sockaddr*)&server,sizeof(server));
+		int len = recvfrom(sock,buf,sizeof(buf)-1,0,(struct sockaddr*)&peer,&slen);
+		if( len < 0){
 			perror("recvfrom");
 			return 3;
-		}
-		else if(s == 0)
-		{
+		}else if(len == 0){
 			printf("server closed\n");
-		}
-		else
-		{
+		}else{
 			reply.ParseFromArray(buf,len);
-			cout<<"[match times]:"<<reply.result()<<endl;
-			buf[s] = 0;
-			//printf("#server echo#  %s\n",buf);
+			cout<<"[server reply] match times:"<<reply.result()<<endl;
+			buf[len] = 0;
 			if(strcmp(buf,"quit") == 0)
 				break;
 		}
