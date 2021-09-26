@@ -30,11 +30,11 @@ TARGET = tclient tserver
 .PHONY:all
 all: $(TARGET)
 
-tclient:$(SRC_PATH)/client.o $(SRC_PATH)/message.pb.o
-	$(CC) $(CFLAGS) -o tclient $(SRC_PATH)/client.o $(SRC_PATH)/message.pb.o $(LIBS)
+tclient:$(SRC_PATH)/client.o $(SRC_PATH)/message.pb.o $(SRC_PATH)/SocketUDP.o
+	$(CC) $(CFLAGS) -o tclient $(SRC_PATH)/client.o $(SRC_PATH)/message.pb.o $(SRC_PATH)/SocketUDP.o $(LIBS)
 
-tserver:$(SRC_PATH)/server.o $(SRC_PATH)/message.pb.o $(SRC_PATH)/regmatch.o
-	$(CC) $(CFLAGS) -o tserver $(SRC_PATH)/server.o $(SRC_PATH)/message.pb.o $(SRC_PATH)/regmatch.o  $(LIBS)
+tserver:$(SRC_PATH)/server.o $(SRC_PATH)/message.pb.o $(SRC_PATH)/regmatch.o $(SRC_PATH)/SocketUDP.o
+	$(CC) $(CFLAGS) -o tserver $(SRC_PATH)/server.o $(SRC_PATH)/message.pb.o $(SRC_PATH)/SocketUDP.o $(SRC_PATH)/regmatch.o $(LIBS)
 	
 $(SRC_PATH)/client.o:$(SRC_PATH)/client.cpp
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -46,6 +46,9 @@ $(SRC_PATH)/server.o:$(SRC_PATH)/server.cpp
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(SRC_PATH)/regmatch.o:$(SRC_PATH)/regmatch.cpp
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(SRC_PATH)/SocketUDP.o:$(SRC_PATH)/SocketUDP.cpp
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 .PHONY:clean

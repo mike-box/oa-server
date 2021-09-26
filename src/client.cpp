@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <string>
 #include <iostream>
+#include "SocketUDP.h"
 #include "message.pb.h"
 
 using namespace std;
@@ -11,43 +12,33 @@ using namespace std;
 
 int main(int argc ,char* argv[])
 {
-	if(argc < 3){
+	if(argc != 3){
 		printf("./client [addr:][port:]\n");
 		return 4;
 	}
-	int sock = socket(AF_INET,SOCK_DGRAM,0);
-	if(sock < 0){
-		perror("socket");
-		return 1;
-	}
- 
-	struct sockaddr_in server;
-	server.sin_family = AF_INET;
-	server.sin_port = htons(atoi(argv[2]));
-	server.sin_addr.s_addr = inet_addr(argv[1]);
-	
+
 	char buf[MAX_BUF_LEN];
+	requestMsg request;
+	replyMsg reply;
+	CSocketUDP client;
 	struct sockaddr_in peer;
-	socklen_t slen = sizeof(peer);
-	while(1){
-		requestMsg req;
-		replyMsg reply;
-		string str;
-		
+
+	while(true){
+		// get input from keyboard
+		string str;		
 		cout<<"#please enter regular expression#:";
 		cin>>str;
-		req.set_regstr(str);
+		request.set_regstr(str);
 		cout<<"#please enter matched string#:";
 		cin>>str;
-		req.set_targetstr(str);
+		request.set_targetstr(str);
+		request.SerializeToArray(buf,MAX_BUF_LEN);
 		
-		//fflush(stdout);
-		req.SerializeToArray(buf,MAX_BUF_LEN);
-		cout<<"[client send] regular expression: "<<req.regstr()<<endl;
-		cout<<"[client send] matched string: "<<req.targetstr()<<endl;
-		sendto(sock,buf,sizeof(buf)-1,0,(struct sockaddr*)&server,sizeof(server));
-		int len = recvfrom(sock,buf,sizeof(buf)-1,0,(struct sockaddr*)&peer,&slen);
-		if( len < 0){
+		//cout<<"[client send] regular expression: "<<req.regstr()<<endl;
+		//cout<<"[client send] matched string: "<<req.targetstr()<<endl;
+		client.send(argv[1],atoi(argv[2]),buf,MAX_BUF_LEN);
+		int len = client.recv(buf,MAX_BUF_LEN,&peer);
+		if( len <= 0){
 			perror("recvfrom");
 			return 3;
 		}else if(len == 0){
@@ -55,9 +46,7 @@ int main(int argc ,char* argv[])
 		}else{
 			reply.ParseFromArray(buf,len);
 			cout<<"[server reply] match times:"<<reply.result()<<endl;
-			buf[len] = 0;
-			if(strcmp(buf,"quit") == 0)
-				break;
+			memset(buf,0,sizeof(buf));
 		}
 	}
  

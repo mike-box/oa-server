@@ -3,30 +3,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
+#include "regmatch.h"
 #include "hs.h"
 
 using namespace std;
-int matched = 0;
+
+int g_matched = 0;
 
 static int eventHandler(unsigned int id, unsigned long long from,
                         unsigned long long to, unsigned int flags, void *ctx) {
     printf("Match for pattern \"%s\" at offset %llu\n", (char *)ctx,to);
-	matched++;
+	g_matched++;
 	return 0;
 }
 
-int regMatch(const char * pattern,int plen,const char * target, int tlen){	
-	matched = 0;
+int regMatch(const string & pattern,const string & target){	
 	hs_database_t *database = NULL;
 	hs_compile_error_t *compile_err = NULL;
-	char * contex = (char *)malloc(plen);
+	char * contex = (char *)malloc(pattern.size());
 
 	/*build data reg base*/
-	memcpy(contex,pattern,plen);
-    if (hs_compile(pattern, HS_FLAG_DOTALL, HS_MODE_BLOCK, NULL, &database,
+	memcpy(contex,pattern.c_str(),pattern.size());
+    if (hs_compile(pattern.c_str(), HS_FLAG_DOTALL, HS_MODE_BLOCK, NULL, &database,
                    &compile_err) != HS_SUCCESS) {
         fprintf(stderr, "ERROR: Unable to compile pattern \"%s\": %s\n",
-                pattern, compile_err->message);
+                pattern.c_str(), compile_err->message);
         hs_free_compile_error(compile_err);
         return -1;
     }
@@ -40,7 +42,8 @@ int regMatch(const char * pattern,int plen,const char * target, int tlen){
     }
 
 	/* scan */
-	if (hs_scan(database, target, tlen, 0, scratch, eventHandler,
+	g_matched = 0;
+	if (hs_scan(database, target.c_str(), target.size(), 0, scratch, eventHandler,
                 contex) != HS_SUCCESS) {
         fprintf(stderr, "ERROR: Unable to scan input buffer. Exiting.\n");
         hs_free_scratch(scratch);
@@ -54,20 +57,5 @@ int regMatch(const char * pattern,int plen,const char * target, int tlen){
     hs_free_scratch(scratch);
     hs_free_database(database);
 	free(contex);
-    return matched;
+    return g_matched;
 }
-
-/*
-int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <pattern> <target>\n", argv[0]);
-        return -1;
-    }
-
-    char *pattern = argv[1];
-    char *target = argv[2];
-	isMatch(pattern,strlen(pattern),target,strlen(target));
-
-	return 0;
-}*/
-
