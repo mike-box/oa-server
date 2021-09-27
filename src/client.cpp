@@ -38,7 +38,7 @@ int main(int argc ,char* argv[])
 		//cout<<"[client send] matched string: "<<req.targetstr()<<endl;
 		client.send(argv[1],atoi(argv[2]),buf,MAX_BUF_LEN);
 		int len = client.recv(buf,MAX_BUF_LEN,&peer);
-		if( len <= 0){
+		if( len < 0){
 			perror("recvfrom");
 			return 3;
 		}else if(len == 0){

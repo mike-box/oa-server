@@ -4,8 +4,7 @@
 
 # link parameter
 CC := g++
-AR  := ar
-LIB := func.a
+AR := ar
 
 #PATH
 ifeq (,$(PRO_DIR))

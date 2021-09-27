@@ -1,11 +1,10 @@
 syntax = "proto2";
 
 message requestMsg {
-    required int32 timestamp = 1;
-    required string regexpr = 2;
-    required string target = 3;
+    required string regstr = 1;
+    required string targetstr = 2;
 }
+
 message replyMsg {
-    required int32　timestamp = 1;
-    required int32  mathched = 2;
+    required int32　result = 1;
 }

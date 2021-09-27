@@ -32,8 +32,8 @@ int main(int argc ,char* argv[])
 	
 	while(true) {
 		//receive msg
-		ssize_t s = server.recv(buf,sizeof(buf)-1,&client);
-		if(s <= 0){
+		ssize_t len = server.recv(buf,sizeof(buf)-1,&client);
+		if(len <= 0){
 			printf("client closed\n");
 		}else{
 			request.ParseFromArray(buf,sizeof(buf)-1);
